@@ -138,7 +138,7 @@ const addToTodosWrapper = () => {
     };
 };
 const getFromLocal = () => {
-    return newTasks = JSON.parse(localStorage.getItem('tasks'));
+    return JSON.parse(localStorage.getItem('tasks'));
 }
 const addToFooterWrapper = () => {
     mainSection.appendChild(footerInfo)
@@ -158,8 +158,7 @@ addToTodosWrapper();
 addToFooterWrapper();
 
 const toggleEdit = (index, changed = false) => {
-    let newTasks = [...tasks];
-    newTasks = newTasks.map((t, i) => {
+    const newTasks = tasks.map((t, i) => {
         if (i === index) {
             if (i === index && changed) {
                 const updateInput = document.getElementById(`updateInput${index}`);
@@ -188,11 +187,10 @@ const updateValue = index => {
     updateInput.addEventListener('keypress', (event) => {
         if (event.key === "Enter") {
             if (updateInput.value.length) {
-                newTasks = newTasks.map((t, i) => {
+                const newTasks = tasks.map((t, i) => {
                     if (i === index) {
                         return {
                             ...t,
-                            isEdit: !t.isEdit,
                             description: updateInput.value
                         }
                     };
@@ -260,9 +258,9 @@ descTaskInput.addEventListener('keypress', (event) => {
 });
 
 checkAllBtn.addEventListener('click', () => {
-    let newTasks = getFromLocal() || [];
-    const notCompleted = newTasks.find(t => t.completed === false);
-    newTasks = newTasks.map(t => {
+    const currentTasks = getFromLocal();
+    const notCompleted = currentTasks.find(t => t.completed === false);
+    const newTasks = currentTasks.map(t => {
         if (notCompleted) {
             return {
                 ...t,
