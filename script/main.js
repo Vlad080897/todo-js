@@ -5,25 +5,24 @@ const footerInfo = document.createElement('footer');
 const mainSection = document.querySelector('.main');
 
 let tasks = [];
-const initialTasks = !localStorage.tasks ? tasks = [] : tasks = JSON.parse(localStorage.getItem('tasks'));
-let leftTaskLength = tasks.filter(t => t.completed === false).length;
-
-const createNewTodo = (newTodo) => {
-    const newTasks = [...tasks, newTodo];
-    tasks = [...newTasks];
-}
-
-const renderPage = (newTasks, changeQueue = false) => {
-    tasks = [...newTasks];
-    if (changeQueue) {
-        addToLocal();
-        addToTodosWrapper(newTasks);
-        addToFooterWrapper();
+!localStorage.tasks ? tasks = [] : tasks = JSON.parse(localStorage.getItem('tasks')).map(t => {
+    if (t.isEdit = true) {
+        return {
+            ...t,
+            isEdit: false
+        }
     }
-    addToTodosWrapper(tasks);
+});
+let leftTaskLength = tasks.filter(t => t.completed === false).length;
+const renderPage = (newTasks, isFilter = false) => {
+    tasks = [...newTasks];
+    if (!isFilter) {
+        addToLocal()
+    }
+    addToTodosWrapper();
     addToFooterWrapper();
-    addToLocal();
 }
+
 
 const createTemplate = (task, index) => {
     const li = document.createElement('li');
@@ -68,61 +67,58 @@ const createTemplate = (task, index) => {
 
 const createFooterTemplate = () => {
     footerInfo.innerHTML = '';
-    if (tasks.length) {
-        const span = document.createElement('span');
-        const ul = document.createElement('ul');
-        const liAll = document.createElement('li');
-        const liActive = document.createElement('li');
-        const liCompleted = document.createElement('li');
-        const liClear = document.createElement('li');
-        const getAllBtn = document.createElement('button');
-        const getActiveBtn = document.createElement('button');
-        const getCompletedBtn = document.createElement('button');
-        const clearCompletedBtn = document.createElement('button');
-        leftTaskLength = tasks.filter(t => t.completed === false).length;
-        const haveCompleted = tasks.find(t => t.completed === true);
-        span.className = 'todo-count';
-        span.innerText = `${leftTaskLength} item left`;
-        ul.className = 'filters';
-        getAllBtn.addEventListener('click', () => {
-            getAll();
-        });
-        liAll.appendChild(getAllBtn);
-        getAllBtn.type = 'button';
-        getAllBtn.innerText = 'All';
-        getActiveBtn.addEventListener('click', () => {
-            getActive();
-        });
-        liActive.appendChild(getActiveBtn);
-        getActiveBtn.type = 'button';
-        getActiveBtn.innerText = 'Active';
-        getCompletedBtn.addEventListener('click', () => {
-            getCompleted();
-        });
-        liCompleted.appendChild(getCompletedBtn)
-        getCompletedBtn.type = 'button';
-        getCompletedBtn.innerText = 'Completed';
-        clearCompletedBtn.addEventListener('click', () => {
-            clearCompleted();
-        });
-        liClear.appendChild(clearCompletedBtn)
-        clearCompletedBtn.type = 'button';
-        clearCompletedBtn.innerText = 'Clear Completed';
-        clearCompletedBtn.className = haveCompleted ? 'clear-completed visible' : 'hidden';
-        ul.appendChild(liAll);
-        ul.appendChild(liActive);
-        ul.appendChild(liCompleted);
-        footerInfo.className = "footer";
-        footerInfo.id = "footer_info_wrapper";
-        footerInfo.appendChild(span);
-        footerInfo.appendChild(ul);
-        footerInfo.appendChild(clearCompletedBtn);
-        mainSection.appendChild(footerInfo)
-    }
+    const span = document.createElement('span');
+    const ul = document.createElement('ul');
+    const liAll = document.createElement('li');
+    const liActive = document.createElement('li');
+    const liCompleted = document.createElement('li');
+    const liClear = document.createElement('li');
+    const getAllBtn = document.createElement('button');
+    const getActiveBtn = document.createElement('button');
+    const getCompletedBtn = document.createElement('button');
+    const clearCompletedBtn = document.createElement('button');
+    leftTaskLength = (getFromLocal() || []).filter(t => t.completed === false).length;
+    const haveCompleted = tasks.find(t => t.completed === true);
+    span.className = 'todo-count';
+    span.innerText = `${leftTaskLength} item left`;
+    ul.className = 'filters';
+    getAllBtn.addEventListener('click', () => {
+        getAll();
+    });
+    liAll.appendChild(getAllBtn);
+    getAllBtn.type = 'button';
+    getAllBtn.innerText = 'All';
+    getActiveBtn.addEventListener('click', () => {
+        getActive();
+    });
+    liActive.appendChild(getActiveBtn);
+    getActiveBtn.type = 'button';
+    getActiveBtn.innerText = 'Active';
+    getCompletedBtn.addEventListener('click', () => {
+        getCompleted();
+    });
+    liCompleted.appendChild(getCompletedBtn)
+    getCompletedBtn.type = 'button';
+    getCompletedBtn.innerText = 'Completed';
+    clearCompletedBtn.addEventListener('click', () => {
+        clearCompleted();
+    });
+    liClear.appendChild(clearCompletedBtn)
+    clearCompletedBtn.type = 'button';
+    clearCompletedBtn.innerText = 'Clear Completed';
+    clearCompletedBtn.className = haveCompleted ? 'clear-completed visible' : 'hidden';
+    ul.appendChild(liAll);
+    ul.appendChild(liActive);
+    ul.appendChild(liCompleted);
+    footerInfo.className = "footer";
+    footerInfo.id = "footer_info_wrapper";
+    footerInfo.appendChild(span);
+    footerInfo.appendChild(ul);
+    footerInfo.appendChild(clearCompletedBtn);
+    mainSection.appendChild(footerInfo)
 }
 
-const addToTodosWrapper = (newTasks = initialTasks) => {
-    tasks = [...newTasks];
+const addToTodosWrapper = () => {
     todosWrapper.innerHTML = '';
     if (tasks.length) {
         tasks.forEach((t, i) => {
@@ -133,7 +129,7 @@ const addToTodosWrapper = (newTasks = initialTasks) => {
     if (haveNotCompleted) {
         checkAllBtn.checked = false;
     } else if (!haveNotCompleted && tasks.length) {
-        const fromLocal = JSON.parse(localStorage.getItem('tasks')).find(t => t.completed === false);
+        const fromLocal = (getFromLocal() || []).find(t => t.completed === false);
         if (fromLocal) {
             checkAllBtn.checked = false
             return;
@@ -141,15 +137,12 @@ const addToTodosWrapper = (newTasks = initialTasks) => {
         checkAllBtn.checked = true;
     };
 };
-const getFromLocal = (tasks) => {
-    if (localStorage.tasks) {
-        return newTasks = JSON.parse(localStorage.getItem('tasks'));
-    };
-    return tasks;
+const getFromLocal = () => {
+    return newTasks = JSON.parse(localStorage.getItem('tasks'));
 }
 const addToFooterWrapper = () => {
     mainSection.appendChild(footerInfo)
-    if (tasks.length) {
+    if ((getFromLocal() || []).length) {
         footerInfo.innerHTML = '';
         createFooterTemplate();
         return;
@@ -168,80 +161,84 @@ const toggleEdit = (index, changed = false) => {
     let newTasks = [...tasks];
     newTasks = newTasks.map((t, i) => {
         if (i === index) {
-            t.isEdit = !t.isEdit
-        };
-        if (i === index && changed) {
-            const updateInput = document.getElementById(`updateInput${index}`);
-            t.description = updateInput.value.length ? updateInput.value : t.description;
-        };
+            if (i === index && changed) {
+                const updateInput = document.getElementById(`updateInput${index}`);
+                return {
+                    ...t,
+                    isEdit: !t.isEdit,
+                    description: updateInput.value.length ? updateInput.value : t.description
+                }
+            }
+            return {
+                ...t,
+                isEdit: !t.isEdit
+            }
+        }
         return t;
     });
-    addToTodosWrapper(newTasks);
-    addToLocal();
+    renderPage(newTasks)
 }
 
 const updateValue = index => {
-    let newTasks = [...tasks];
     toggleEdit(index);
-    addToTodosWrapper(newTasks);
+    addToTodosWrapper();
     const updateInput = document.getElementById(`updateInput${index}`);
     updateInput.focus();
-    updateInput.value = newTasks[index].description
+    updateInput.value = tasks[index].description
     updateInput.addEventListener('keypress', (event) => {
         if (event.key === "Enter") {
             if (updateInput.value.length) {
                 newTasks = newTasks.map((t, i) => {
                     if (i === index) {
-                        t.description = updateInput.value
+                        return {
+                            ...t,
+                            isEdit: !t.isEdit,
+                            description: updateInput.value
+                        }
                     };
                     return t;
                 });
-                addToTodosWrapper(newTasks);
-                addToLocal();
-                return;
+                renderPage(newTasks);
             };
         };
     });
 };
 
 const completeTask = index => {
-    let newTasks = [...tasks];
-    newTasks = newTasks.map((t, i) => {
+    const newTasks = tasks.map((t, i) => {
         if (i === index) {
-            t.completed = !t.completed;
-        }
-        return t
-    })
-    renderPage(newTasks, true);
+            return {
+                ...t,
+                completed: !t.completed
+            };
+        };
+        return t;
+    });
+    renderPage(newTasks);
 };
 
 const deleteTask = index => {
-    let newTasks = tasks.filter((_, i) => i !== index);
+    const newTasks = tasks.filter((_, i) => i !== index);
     renderPage(newTasks);
 };
 
 const getCompleted = () => {
-    let newTasks = [];
-    newTasks = getFromLocal(newTasks);
-    newTasks = newTasks.filter((t) => t.completed === true);
-    addToTodosWrapper(newTasks);
+    const newTasks = (getFromLocal() || []).filter((t) => t.completed === true);
+    renderPage(newTasks, true);
 };
 
 const getAll = () => {
-    let newTasks = [];
-    newTasks = getFromLocal(newTasks);
-    addToTodosWrapper([...newTasks]);
+    const newTasks = getFromLocal();
+    renderPage(newTasks, true)
 };
 
 const getActive = () => {
-    let newTasks = [];
-    newTasks = getFromLocal(newTasks);
-    newTasks = newTasks.filter((t) => t.completed === false);
-    addToTodosWrapper(newTasks);
+    const newTasks = (getFromLocal() || []).filter((t) => t.completed === false);
+    renderPage(newTasks, true)
 };
 
 const clearCompleted = () => {
-    let newTasks = tasks.filter((t) => t.completed === false);
+    const newTasks = (getFromLocal() || []).filter((t) => t.completed === false);
     checkAllBtn.checked = false;
     renderPage(newTasks);
 };
@@ -251,19 +248,19 @@ descTaskInput.addEventListener('keypress', (event) => {
         if (!descTaskInput.value.length) {
             return;
         };
-        const newTodo = {
+        const newTask = {
             description: descTaskInput.value,
             completed: false,
             isEdit: false
         };
-        createNewTodo(newTodo);
-        renderPage([...tasks]);
+        const newTasks = [...tasks, newTask];
+        renderPage(newTasks);
         descTaskInput.value = '';
     };
 });
 
-checkAllBtn.addEventListener('click', (event) => {
-    let newTasks = getFromLocal([...tasks])
+checkAllBtn.addEventListener('click', () => {
+    let newTasks = getFromLocal() || [];
     const notCompleted = newTasks.find(t => t.completed === false);
     newTasks = newTasks.map(t => {
         if (notCompleted) {
@@ -271,12 +268,11 @@ checkAllBtn.addEventListener('click', (event) => {
                 ...t,
                 completed: true
             }
-        } else if (!notCompleted) {
-            return {
-                ...t,
-                completed: false,
-            }
         }
+        return {
+            ...t,
+            completed: false,
+        };
     })
-    renderPage(newTasks, true);
+    renderPage(newTasks);
 })
