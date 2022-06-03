@@ -38,7 +38,7 @@ const createTemplate = (task, index) => {
     updateInput.id = `updateInput${index}`;
     updateInput.autofocus = true;
     updateInput.addEventListener('blur', () => {
-        toggleEdit(index)
+        toggleEdit(index, true)
     });
     destroyButton.type = 'button';
     destroyButton.className = 'destroy';
@@ -164,11 +164,15 @@ const addToLocal = () => {
 addToTodosWrapper();
 addToFooterWrapper();
 
-const toggleEdit = index => {
+const toggleEdit = (index, changed = false) => {
     let newTasks = [...tasks];
     newTasks = newTasks.map((t, i) => {
         if (i === index) {
             t.isEdit = !t.isEdit
+        };
+        if (i === index && changed) {
+            const updateInput = document.getElementById(`updateInput${index}`);
+            t.description = updateInput.value.length ? updateInput.value : t.description;
         };
         return t;
     });
@@ -258,7 +262,7 @@ descTaskInput.addEventListener('keypress', (event) => {
     };
 });
 
-checkAllBtn.addEventListener('click', () => {
+checkAllBtn.addEventListener('click', (event) => {
     let newTasks = getFromLocal([...tasks])
     const notCompleted = newTasks.find(t => t.completed === false);
     newTasks = newTasks.map(t => {
