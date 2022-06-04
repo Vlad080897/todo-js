@@ -361,11 +361,16 @@ html .clear-completed:active {
     margin-left: 5px;
 }
 
-.filters li button{
+.filters li button {
     padding: 2px;
 }
 
 .filters li button:hover {
+    border: 1px solid #d9d9d9;
+    border-radius: 2px;
+}
+
+.activeButton {
     border: 1px solid #d9d9d9;
     border-radius: 2px;
 }
