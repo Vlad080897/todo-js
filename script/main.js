@@ -15,11 +15,18 @@ let tasks = [];
 });
 let route = 'All';
 let leftTaskLength = tasks.filter(t => t.completed === false).length;
-const renderPage = (newTasks, isFilter = false) => {
-  tasks = [...newTasks];
-  if (!isFilter) {
-    addToLocal();
-  };
+
+const renderPage = () => {
+    const currentTodos = getFromLocal();
+    
+    if (route === 'Active') {
+        tasks = getActive()
+    } else if (route === 'Completed') {
+        tasks = getCompleted()
+    } else {
+        tasks = currentTodos
+    }
+
   addToTodosWrapper();
   addToFooterWrapper();
 }
@@ -84,6 +91,11 @@ const isButtonActive = () => {
     setActive('Completed')
   };
 };
+
+const setRoute = newType => {
+    route = newType
+    renderPage()
+}
 
 const createFooterTemplate = () => {
   footerInfo.innerHTML = '';
@@ -186,8 +198,8 @@ const addToFooterWrapper = () => {
   mainSection.removeChild(footerInfo);
 };
 
-const addToLocal = () => {
-  localStorage.setItem('tasks', JSON.stringify(tasks));
+const addToLocal = (newTodos) => {
+  localStorage.setItem('tasks', JSON.stringify(newTodos));
 };
 
 addToTodosWrapper();
@@ -196,7 +208,7 @@ isButtonActive();
 
 const toggleEdit = (id, changed = false) => {
   const fromLocal = getFromLocal()
-  let newTasks = fromLocal.map((t, i) => {
+  const newTasks = fromLocal.map((t) => {
     if (t.id === id) {
       if (t.id === id && changed) {
         const updateInput = document.getElementById(`updateInput${id}`);
@@ -213,26 +225,19 @@ const toggleEdit = (id, changed = false) => {
     };
     return t;
   });
-  renderPage(newTasks);
-  if (route === 'Active') {
-    newTasks = newTasks.filter(t => t.completed === false);
-  };
-  if (route === 'Completed') {
-    newTasks = newTasks.filter(t => t.completed === true);
-  };
-  renderPage(newTasks, true);
+  addToLocal(newTasks);
+  renderPage();
 };
 
 const updateValue = (id, index) => {
   toggleEdit(id);
-  addToTodosWrapper();
   const updateInput = document.getElementById(`updateInput${id}`);
   updateInput.focus();
   updateInput.value = tasks[index].description;
   updateInput.addEventListener('keypress', (event) => {
     if (event.key === "Enter") {
       if (updateInput.value.length && updateInput.value.trim().length) {
-        const newTasks = tasks.map((t, i) => {
+        const newTasks = tasks.map((t) => {
           if (t.id === id) {
             return {
               ...t,
@@ -241,7 +246,8 @@ const updateValue = (id, index) => {
           };
           return t;
         });
-        renderPage(newTasks, true);
+        addToLocal(newTasks);
+        renderPage();
       };
     };
   });
@@ -249,7 +255,7 @@ const updateValue = (id, index) => {
 
 const completeTask = id => {
   const fromLocal = getFromLocal();
-  let newTasks = fromLocal.map((t, i) => {
+  const newTasks = fromLocal.map((t) => {
     if (t.id === id) {
       return {
         ...t,
@@ -258,52 +264,30 @@ const completeTask = id => {
     };
     return t;
   });
-  renderPage(newTasks);
-  if (route === 'Completed') {
-    newTasks = newTasks.filter(t => t.completed === true)
-  };
-  if (route === 'Active') {
-    newTasks = newTasks.filter(t => t.completed === false)
-  };
-  renderPage(newTasks, true);
-  isButtonActive();
+  addToLocal(newTasks);
+  renderPage();
 };
 
 const deleteTask = id => {
   const fromLocal = getFromLocal();
-  let newTasks = fromLocal.filter((t, i) => t.id !== id);
-  renderPage(newTasks);
-  if (route === 'Active') {
-    newTasks = newTasks.filter(t => t.completed === false);
-  }
-  if (route === 'Completed') {
-    newTasks = newTasks.filter(t => t.completed === true);
-  }
-  renderPage(newTasks, true);
-  isButtonActive();
+  const newTasks = fromLocal.filter((t) => t.id !== id);
+  addToLocal(newTasks);
+  renderPage()
 };
 
 const getCompleted = () => {
-  const newTasks = (getFromLocal() || []).filter((t) => t.completed === true);
-  renderPage(newTasks, true);
-};
-
-const getAll = () => {
-  const newTasks = getFromLocal();
-  renderPage(newTasks, true)
+  return (getFromLocal() || []).filter((t) => t.completed === true);
 };
 
 const getActive = () => {
-  const newTasks = (getFromLocal() || []).filter((t) => t.completed === false);
-  renderPage(newTasks, true);
+  return (getFromLocal() || []).filter((t) => t.completed === false);
 };
 
 const clearCompleted = () => {
   const newTasks = (getFromLocal() || []).filter((t) => t.completed === false);
   checkAllBtn.checked = false;
-  renderPage(newTasks);
-  route = 'All';
-  isButtonActive();
+  addToLocal(newTasks);
+  renderPage();
 };
 
 descTaskInput.addEventListener('keypress', (event) => {
@@ -319,9 +303,8 @@ descTaskInput.addEventListener('keypress', (event) => {
     };
     const fromLocal = getFromLocal() || [];
     const newTasks = [...fromLocal, newTask];
-    renderPage(newTasks);
-    route = 'All';
-    isButtonActive();
+    addToLocal(newTasks);
+    renderPage();
     descTaskInput.value = '';
   };
 });
@@ -341,7 +324,6 @@ checkAllBtn.addEventListener('click', () => {
       completed: false,
     };
   });
-  renderPage(newTasks);
-  route = 'All';
-  isButtonActive();
+  addToLocal(newTasks);
+  renderPage();
 });
