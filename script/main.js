@@ -1,8 +1,16 @@
 const descTaskInput = document.getElementById('main_input');
 const todosWrapper = document.getElementById('todos-wrapper');
 const checkAllBtn = document.getElementById('toggle-all');
-const footerInfo = document.createElement('footer');
-const mainSection = document.querySelector('.main');
+const footerInfo = document.querySelector('.footer');
+const leftTasks = document.querySelector('.todo-count');
+const allBtn = document.getElementById('allBtn');
+let footerBtns = [];
+footerBtns.push(allBtn);
+const activeBtn = document.getElementById('activeBtn');
+footerBtns.push(activeBtn);
+const compBtn = document.getElementById('compBtn');
+footerBtns.push(compBtn);
+const clearCompletedFromHtml = document.getElementById('clearCompleted');
 
 let tasks = [];
 !localStorage.tasks ? tasks = [] : tasks = JSON.parse(localStorage.getItem('tasks')).map(t => {
@@ -14,7 +22,25 @@ let tasks = [];
   };
 });
 let route = 'All';
-let leftTaskLength = tasks.filter(t => t.completed === false).length;
+
+const getAllBtn = () => {
+  route = 'All';
+  renderPage();
+}
+
+const getActiveBtn = () => {
+  route = 'Active';
+  renderPage();
+}
+
+const getCompletedBtn = () => {
+  route = 'Completed';
+  renderPage();
+}
+
+const clearCompletedBtn = () => {
+  clearCompleted();
+}
 
 const renderPage = () => {
   const currentTasks = (getFromLocal() || []);
@@ -71,13 +97,15 @@ const createTemplate = (task, index) => {
   todosWrapper.append(li);
 };
 
-let footerBtns = [];
+
 const isButtonActive = () => {
   const setActive = (buttonName) => {
     footerBtns.forEach(b => {
       if (b.innerHTML === buttonName) {
         b.className = 'activeButton';
+        return;
       };
+      b.className = '';
     });
   };
   if (route === 'All') {
@@ -89,66 +117,6 @@ const isButtonActive = () => {
   if (route === 'Completed') {
     setActive('Completed')
   };
-};
-
-const createFooterTemplate = () => {
-  footerInfo.innerHTML = '';
-  footerBtns = [];
-  const span = document.createElement('span');
-  const ul = document.createElement('ul');
-  const liAll = document.createElement('li');
-  const liActive = document.createElement('li');
-  const liCompleted = document.createElement('li');
-  const liClear = document.createElement('li');
-  const getAllBtn = document.createElement('button');
-  footerBtns.push(getAllBtn)
-  const getActiveBtn = document.createElement('button');
-  footerBtns.push(getActiveBtn)
-  const getCompletedBtn = document.createElement('button');
-  footerBtns.push(getCompletedBtn)
-  const clearCompletedBtn = document.createElement('button');
-  leftTaskLength = (getFromLocal() || []).filter(t => t.completed === false).length;
-  const haveCompleted = tasks.find(t => t.completed === true);
-  span.className = 'todo-count';
-  span.innerText = `${leftTaskLength} item left`;
-  ul.className = 'filters';
-  getAllBtn.addEventListener('click', (event) => {
-    route = 'All';
-    renderPage();
-  });
-  liAll.appendChild(getAllBtn);
-  getAllBtn.type = 'button';
-  getAllBtn.innerText = 'All';
-  getActiveBtn.addEventListener('click', (event) => {
-    route = 'Active';
-    renderPage();
-  });
-  liActive.appendChild(getActiveBtn);
-  getActiveBtn.type = 'button';
-  getActiveBtn.innerText = 'Active';
-  getCompletedBtn.addEventListener('click', event => {
-    route = 'Completed';
-    renderPage();
-  });
-  liCompleted.appendChild(getCompletedBtn);
-  getCompletedBtn.type = 'button';
-  getCompletedBtn.innerText = 'Completed';
-  clearCompletedBtn.addEventListener('click', () => {
-    clearCompleted();
-  });
-  liClear.appendChild(clearCompletedBtn);
-  clearCompletedBtn.type = 'button';
-  clearCompletedBtn.innerText = 'Clear Completed';
-  clearCompletedBtn.className = haveCompleted ? 'clear-completed visible' : 'hidden';
-  ul.appendChild(liAll);
-  ul.appendChild(liActive);
-  ul.appendChild(liCompleted);
-  footerInfo.className = "footer";
-  footerInfo.id = "footer_info_wrapper";
-  footerInfo.appendChild(span);
-  footerInfo.appendChild(ul);
-  footerInfo.appendChild(clearCompletedBtn);
-  mainSection.appendChild(footerInfo);
 };
 
 const addToTodosWrapper = () => {
@@ -180,13 +148,16 @@ const getFromLocal = () => {
 };
 
 const addToFooterWrapper = () => {
-  mainSection.appendChild(footerInfo)
+  const leftTaskLength = (getFromLocal() || []).filter(t => t.completed !== true).length;
   if ((getFromLocal() || []).length) {
-    footerInfo.innerHTML = '';
-    createFooterTemplate();
+    footerInfo.className = 'footer'
+    const haveCompleted = (getFromLocal() || []).find(t => t.completed === true);
+    clearCompletedFromHtml.className = haveCompleted ? 'clear-completed visible' : 'hidden';
+    leftTasks.innerHTML = `${leftTaskLength} tasks left`;
+    isButtonActive();
     return;
-  };
-  mainSection.removeChild(footerInfo);
+  }
+  footerInfo.className = 'hidden-footer'
 };
 
 const addToLocal = (newTasks) => {

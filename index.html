@@ -13,12 +13,30 @@
     <section class="todoapp">
         <header class="header">
             <h1>todos</h1>
-            <input onblur="" type="text" class="new-todo" id="main_input" placeholder="What needs to be done?" autofocus>
+            <input onblur="" type="text" class="new-todo" id="main_input" placeholder="What needs to be done?"
+                autofocus>
         </header>
         <section class="main">
             <input class="toggle-all" type="checkbox" id="toggle-all">
             <label for="toggle-all"></label>
             <ul class="todo-list" id="todos-wrapper"></ul>
+            <footer class="footer" id="footer_info_wrapper">
+                <span class="todo-count">0 items left</span>
+                <ul class="filters">
+                    <li>
+                        <button type="button" class="" onclick="{getAllBtn()}" id="allBtn">All</button>
+                    </li>
+                    <li>
+                        <button type="button" class="" onclick="{getActiveBtn()}" id="activeBtn">Active</button>
+                    </li>
+                    <li>
+                        <button type="button" class="" onclick="{getCompletedBtn()}" id="compBtn">Completed</button>
+                    </li>
+                </ul>
+                <button type="button" class="hidden" onclick="{clearCompletedBtn()}" id="clearCompleted">
+                    Clear completed
+                </button>
+            </footer>
         </section>
     </section>
     <script src="./script/main.js"></script>

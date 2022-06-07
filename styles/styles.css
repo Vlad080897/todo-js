@@ -400,3 +400,7 @@ html .clear-completed:active {
         bottom: 10px;
     }
 }
+
+.hidden-footer {
+    display: none;
+}
