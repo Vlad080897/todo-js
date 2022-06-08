@@ -6,13 +6,40 @@ const leftTasks = document.querySelector('.todo-count');
 const allBtn = document.getElementById('allBtn');
 let footerBtns = [];
 footerBtns.push(allBtn);
+allBtn.addEventListener('click', (event) => {
+  route = 'All';
+  renderPage();
+  setActiveBtn(event.target.innerHTML);
+})
 const activeBtn = document.getElementById('activeBtn');
 footerBtns.push(activeBtn);
+activeBtn.addEventListener('click', (event) => {
+  route = 'Active';
+  renderPage();
+  setActiveBtn(event.target.innerHTML);
+})
 const compBtn = document.getElementById('compBtn');
 footerBtns.push(compBtn);
+compBtn.addEventListener('click', (event) => {
+  route = 'Completed';
+  renderPage();
+  setActiveBtn(event.target.innerHTML);
+})
 const clearCompletedFromHtml = document.getElementById('clearCompleted');
+clearCompletedFromHtml.addEventListener('click', () => {
+  clearCompleted();
+})
 
 let tasks = [];
+const setActiveBtn = (buttonName) => {
+  footerBtns.forEach(b => {
+    if (b.innerHTML === buttonName) {
+      b.className = 'activeButton';
+      return;
+    }
+    b.className = '';
+  })
+}
 !localStorage.tasks ? tasks = [] : tasks = JSON.parse(localStorage.getItem('tasks')).map(t => {
   if (t.isEdit = true) {
     return {
@@ -22,25 +49,6 @@ let tasks = [];
   };
 });
 let route = 'All';
-
-const getAllBtn = () => {
-  route = 'All';
-  renderPage();
-}
-
-const getActiveBtn = () => {
-  route = 'Active';
-  renderPage();
-}
-
-const getCompletedBtn = () => {
-  route = 'Completed';
-  renderPage();
-}
-
-const clearCompletedBtn = () => {
-  clearCompleted();
-}
 
 const renderPage = () => {
   const currentTasks = (getFromLocal() || []);
@@ -53,7 +61,6 @@ const renderPage = () => {
   };
   addToTodosWrapper();
   addToFooterWrapper();
-  isButtonActive();
 }
 
 const createTemplate = (task, index) => {
@@ -97,28 +104,6 @@ const createTemplate = (task, index) => {
   todosWrapper.append(li);
 };
 
-
-const isButtonActive = () => {
-  const setActive = (buttonName) => {
-    footerBtns.forEach(b => {
-      if (b.innerHTML === buttonName) {
-        b.className = 'activeButton';
-        return;
-      };
-      b.className = '';
-    });
-  };
-  if (route === 'All') {
-    setActive('All');
-  };
-  if (route === 'Active') {
-    setActive('Active')
-  };
-  if (route === 'Completed') {
-    setActive('Completed')
-  };
-};
-
 const addToTodosWrapper = () => {
   todosWrapper.innerHTML = '';
   if (tasks.length) {
@@ -154,7 +139,6 @@ const addToFooterWrapper = () => {
     const haveCompleted = (getFromLocal() || []).find(t => t.completed === true);
     clearCompletedFromHtml.className = haveCompleted ? 'clear-completed visible' : 'hidden';
     leftTasks.innerHTML = `${leftTaskLength} tasks left`;
-    isButtonActive();
     return;
   }
   footerInfo.className = 'hidden-footer'
@@ -166,7 +150,7 @@ const addToLocal = (newTasks) => {
 
 addToTodosWrapper();
 addToFooterWrapper();
-isButtonActive();
+setActiveBtn(route);
 
 const toggleEdit = (id, changed = false) => {
   const fromLocal = getFromLocal()
